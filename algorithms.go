@@ -15,8 +15,6 @@ import (
 	"unsafe"
 )
 
-var _ = fmt.Println
-
 /* --------------------------------------------- */
 /* Misc functions                                */
 /* --------------------------------------------- */
@@ -301,6 +299,97 @@ func (src RasterBand) SieveFilter(
 /* --------------------------------------------- */
 /* Gridding functions                            */
 /* --------------------------------------------- */
+
+type GridAlgorithm uint8
+
+const (
+	InverseDistanceToAPower                = GridAlgorithm(C.GGA_InverseDistanceToAPower)
+	MovingAverage                          = C.GGA_MovingAverage
+	NearestNeighbor                        = C.GGA_NearestNeighbor
+	MetricMinimum                          = C.GGA_MetricMinimum
+	MetricMaximum                          = C.GGA_MetricMaximum
+	MetricRange                            = C.GGA_MetricRange
+	MetricCount                            = C.GGA_MetricCount
+	MetricAverageDistance                  = C.GGA_MetricAverageDistance
+	MetricAverageDistancePts               = C.GGA_MetricAverageDistancePts
+	Linear                                 = C.GGA_Linear
+	InverseDistanceToAPowerNearestNeighbor = C.GGA_InverseDistanceToAPowerNearestNeighbor
+)
+
+type GridOptions struct {
+	Power           float64
+	Smoothing       float64
+	AnisotropyRatio float64
+	AnisotropyAngle float64
+	Radius1         float64
+	Radius2         float64
+	Angle           float64
+	MaxPoints       uint32
+	MinPoints       uint32
+	NoDataValue     float64
+}
+
+// Fill selected raster regions by interpolation from the edges
+func Grid(
+	algorithm GridAlgorithm,
+	options interface{}, // maybe define an interface.
+	x, y, z []float64,
+	xmin, xmax float64,
+	ymin, ymax float64,
+	xsize, ysize uint32,
+	buffer interface{},
+	progress ProgressFunc,
+	data interface{},
+) error {
+
+	var dataPtr unsafe.Pointer
+	var dataType DataType
+	switch data := buffer.(type) {
+	case []int8:
+		dataType = Byte
+		dataPtr = unsafe.Pointer(&data[0])
+	case []uint8:
+		dataType = Byte
+		dataPtr = unsafe.Pointer(&data[0])
+	case []int16:
+		dataType = Int16
+		dataPtr = unsafe.Pointer(&data[0])
+	case []uint16:
+		dataType = UInt16
+		dataPtr = unsafe.Pointer(&data[0])
+	case []int32:
+		dataType = Int32
+		dataPtr = unsafe.Pointer(&data[0])
+	case []uint32:
+		dataType = UInt32
+		dataPtr = unsafe.Pointer(&data[0])
+	case []float32:
+		dataType = Float32
+		dataPtr = unsafe.Pointer(&data[0])
+	case []float64:
+		dataType = Float64
+		dataPtr = unsafe.Pointer(&data[0])
+	default:
+		return fmt.Errorf("Error: buffer is not a valid data type (must be a valid numeric slice)")
+	}
+
+	return C.GDALGridCreate(
+		C.GDALGridAlgorithm(algorithm),
+		unsafe.Pointer(&options),
+		C.GUInt32(len(x)),
+		(*C.double)(&x[0]),
+		(*C.double)(&y[0]),
+		(*C.double)(&z[0]),
+		C.double(xmin), C.double(xmax),
+		C.double(ymin), C.double(ymax),
+		C.GUInt32(xsize),
+		C.GUInt32(ysize),
+		C.GDALDataType(dataType),
+		dataPtr,
+		C.goGDALProgressFuncProxyB(),
+		unsafe.Pointer(dataPtr),
+	).Err()
+}
 
 //Unimplemented: CreateGrid
 //Unimplemented: ComputeMatchingPoints
