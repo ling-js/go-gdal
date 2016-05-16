@@ -17,8 +17,6 @@ import (
 	"unsafe"
 )
 
-var _ = fmt.Println
-
 func init() {
 	C.GDALAllRegister()
 }
@@ -126,11 +124,11 @@ func IntSliceToCInt(data []int) []C.int {
 }
 
 //Safe array conversion
-func CIntSliceToInt(data []C.int) []int {
+func CIntSliceToInt(data []C.GUIntBig) []uint64 {
 	sliceSz := len(data)
-	result := make([]int, sliceSz)
+	result := make([]uint64, sliceSz)
 	for i := 0; i < sliceSz; i++ {
-		result[i] = int(data[i])
+		result[i] = uint64(data[i])
 	}
 	return result
 }
@@ -1307,19 +1305,19 @@ func (rb RasterBand) Histogram(
 	includeOutOfRange, approxOK int,
 	progress ProgressFunc,
 	data interface{},
-) ([]int, error) {
+) ([]uint64, error) {
 	arg := &goGDALProgressFuncProxyArgs{
 		progress, data,
 	}
 
-	histogram := make([]C.int, buckets)
-
-	if err := C.GDALGetRasterHistogram(
+	histogram := make([]C.GUIntBig, buckets)
+	var err error
+	if err = C.GDALGetRasterHistogramEx(
 		rb.cval,
 		C.double(min),
 		C.double(max),
 		C.int(buckets),
-		(*C.int)(unsafe.Pointer(&histogram[0])),
+		(*C.GUIntBig)(unsafe.Pointer(&histogram[0])),
 		C.int(includeOutOfRange),
 		C.int(approxOK),
 		C.goGDALProgressFuncProxyB(),
@@ -1329,6 +1327,7 @@ func (rb RasterBand) Histogram(
 	} else {
 		return CIntSliceToInt(histogram), nil
 	}
+	return nil, err
 }
 
 // Fetch default raster histogram
@@ -1336,14 +1335,14 @@ func (rb RasterBand) DefaultHistogram(
 	force int,
 	progress ProgressFunc,
 	data interface{},
-) (min, max float64, buckets int, histogram []int, err error) {
+) (min, max float64, buckets int, histogram []uint64, err error) {
 	arg := &goGDALProgressFuncProxyArgs{
 		progress, data,
 	}
 
-	var cHistogram *C.int
+	var cHistogram *C.GUIntBig
 
-	err = C.GDALGetDefaultHistogram(
+	err = C.GDALGetDefaultHistogramEx(
 		rb.cval,
 		(*C.double)(&min),
 		(*C.double)(&max),

@@ -11,7 +11,6 @@ package gdal
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
