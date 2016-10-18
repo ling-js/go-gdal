@@ -154,13 +154,45 @@ func GetAsyncStatusTypeByName(statusTypeName string) AsyncStatusType {
 }
 
 // Flag indicating read/write, or read-only access to data.
-type Access int
+type Access uint
 
 const (
 	// Read only (no update) access
 	ReadOnly = Access(C.GA_ReadOnly)
 	// Read/write access.
 	Update = Access(C.GA_Update)
+)
+
+// GDAL_OF flags for opening datasets with OpenEx
+// Note: we define GDAL_OF_READONLY and GDAL_OF_UPDATE to be on purpose
+// equals to GA_ReadOnly and GA_Update defined above.
+const (
+	// Allow raster and vector drivers to be used.
+	AllDrivers = Access(C.GDAL_OF_ALL)
+
+	// Allow raster drivers to be used.
+	RasterDrivers = Access(C.GDAL_OF_RASTER)
+
+	// Allow vector drivers to be used.
+	VectorDrivers = Access(C.GDAL_OF_VECTOR)
+
+	// Allow gnm drivers to be used.
+	GNMDrivers = Access(C.GDAL_OF_GNM)
+
+	// Unsure
+	KindMask = Access(C.GDAL_OF_KIND_MASK)
+
+	// Open in shared mode.
+	Shared = Access(C.GDAL_OF_SHARED)
+
+	// Emit error message in case of failed open.
+	Verbose = Access(C.GDAL_OF_VERBOSE_ERROR)
+
+	// Open as internal dataset. Such dataset isn't registered in the global list
+	// of opened dataset. Cannot be used with GDAL_OF_SHARED.
+	Internal = Access(C.GDAL_OF_INTERNAL)
+
+// 2.1+ flags not supported yet
 )
 
 // Read/Write flag for RasterIO() method
@@ -450,6 +482,59 @@ func OpenShared(filename string, access Access) Dataset {
 
 	dataset := C.GDALOpenShared(cFilename, C.GDALAccess(access))
 	return Dataset{dataset}
+}
+
+func OpenEx(filename string, flags Access, allowedDrivers []string, options []string, siblingFiles []string) (Dataset, error) {
+	cFilename := C.CString(filename)
+	defer C.free(unsafe.Pointer(cFilename))
+
+	n := len(allowedDrivers)
+	cDrivers := make([]*C.char, n+1)
+	for i := 0; i < n; i++ {
+		cDrivers[i] = C.CString(allowedDrivers[i])
+		defer C.free(unsafe.Pointer(cDrivers[i]))
+	}
+	cDrivers[n] = (*C.char)(unsafe.Pointer(nil))
+
+	n = len(options)
+	cOptions := make([]*C.char, n+1)
+	for i := 0; i < n; i++ {
+		cOptions[i] = C.CString(options[i])
+		defer C.free(unsafe.Pointer(cOptions[i]))
+	}
+	cOptions[n] = (*C.char)(unsafe.Pointer(nil))
+
+	n = len(siblingFiles)
+	cSiblings := make([]*C.char, n+1)
+	for i := 0; i < n; i++ {
+		cSiblings[i] = C.CString(siblingFiles[i])
+		defer C.free(unsafe.Pointer(cSiblings[i]))
+	}
+	cSiblings[n] = (*C.char)(unsafe.Pointer(nil))
+
+	var dataset C.GDALDatasetH
+	// The allowed drivers argument has to be handled specially.
+	// nil -> all drivers
+	// null terminated list (as the default code would produce) means no drivers
+	if allowedDrivers == nil {
+		dataset = C.GDALOpenEx(
+			cFilename,
+			C.uint(flags),
+			nil,
+			(**C.char)(unsafe.Pointer(&cOptions[0])),
+			(**C.char)(unsafe.Pointer(&cSiblings[0])))
+	} else {
+		dataset = C.GDALOpenEx(
+			cFilename,
+			C.uint(flags),
+			(**C.char)(unsafe.Pointer(&cDrivers[0])),
+			(**C.char)(unsafe.Pointer(&cOptions[0])),
+			(**C.char)(unsafe.Pointer(&cSiblings[0])))
+	}
+	if dataset == nil {
+		return Dataset{nil}, fmt.Errorf("Error: dataset '%s' open error", filename)
+	}
+	return Dataset{dataset}, nil
 }
 
 // Unimplemented: DumpOpenDatasets

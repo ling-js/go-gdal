@@ -4,7 +4,9 @@
 
 package gdal
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTiffDriver(t *testing.T) {
 	_, err := GetDriverByName("GTiff")
@@ -16,6 +18,61 @@ func TestTiffDriver(t *testing.T) {
 func TestShapeDriver(t *testing.T) {
 	drv := OGRDriverByName("ESRI Shapefile")
 	drv.TestCapability("NA")
+}
+
+func TestOpen(t *testing.T) {
+	if !HTTPEnabled() {
+		t.Skip()
+	}
+	ds, err := Open("/vsicurl/http://download.osgeo.org/gdal/data/gtiff/small_world.tif", ReadOnly)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ds.Close()
+}
+
+func TestOpenEx(t *testing.T) {
+	if !HTTPEnabled() {
+		t.Skip()
+	}
+	ds, err := OpenEx("/vsicurl/http://download.osgeo.org/gdal/data/gtiff/small_world.tif",
+		ReadOnly|RasterDrivers, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ds.Close()
+}
+
+// Test open with flags we know should fail
+func TestOpenExMismatchFlags(t *testing.T) {
+	if !HTTPEnabled() {
+		t.Skip()
+	}
+	tests := []struct {
+		flags   Access
+		drivers []string
+	}{
+		{
+			ReadOnly | RasterDrivers,
+			[]string{"JPEG", "PNG"},
+		},
+		{
+			Update | RasterDrivers,
+			nil,
+		},
+		{
+			ReadOnly | VectorDrivers,
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := OpenEx("/vsicurl/http://download.osgeo.org/gdal/data/gtiff/small_world.tif",
+			test.flags, test.drivers, nil, nil)
+		if err == nil {
+			t.Fatal("driver sublist failed")
+		}
+	}
 }
 
 func TestHistogram(t *testing.T) {
