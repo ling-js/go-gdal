@@ -86,8 +86,9 @@ func SetConfigOption(key, value string) {
 	C.CPLSetConfigOption(k, v)
 }
 
-// HTTPEnabled checks to see if the underlying GDAL library has libcurl support
-// configured and built
+// HTTPEnabled returns if CPLHTTP services can be useful
+//
+// Those services depend on GDAL being build with libcurl support.
 func HTTPEnabled() bool {
 	rc := C.CPLHTTPEnabled()
 	if int(rc) == 0 {
