@@ -103,6 +103,28 @@ func TestHistogram(t *testing.T) {
 	}
 }
 
+func TestGetLayer(t *testing.T) {
+	if !HTTPEnabled() {
+		t.Skip()
+	}
+	fname := "/vsizip/vsicurl/"
+	fname += "http://download.osgeo.org"
+	fname += "/gdal/CURRENT/gdalautotest-2.1.1.zip"
+	fname += "/gdalautotest-2.1.1/ogr/data/testshp/poly.shp"
+	ds, err := OpenEx(fname, ReadOnly|VectorDrivers, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ds.GetLayer(0)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = ds.GetLayerByName("poly")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestConfigOption(t *testing.T) {
 	k, v := "GDAL_GO_TEST", "ON"
 	SetConfigOption(k, v)

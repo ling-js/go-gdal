@@ -484,6 +484,7 @@ func OpenShared(filename string, access Access) Dataset {
 	return Dataset{dataset}
 }
 
+// TODO(kyle): deprecate Open(), rename OpenEx->Open
 func OpenEx(filename string, flags Access, allowedDrivers []string, options []string, siblingFiles []string) (Dataset, error) {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
@@ -1517,6 +1518,35 @@ func (sourceRaster RasterBand) RasterBandCopyWholeRaster(
 		C.goGDALProgressFuncProxyB(),
 		unsafe.Pointer(arg),
 	).Err()
+}
+
+// GetLayer fetches a layer by index.
+//
+// The returned layer remains owned by the GDALDataset and should not be deleted
+// by the application.
+//
+// This function is the same as the C++ method GDALDataset::GetLayer()
+func (ds Dataset) GetLayer(layer int) (Layer, error) {
+	lyr := C.GDALDatasetGetLayer(ds.cval, C.int(layer))
+	if lyr == nil {
+		return Layer{lyr}, fmt.Errorf("failed to get layer")
+	}
+	return Layer{lyr}, nil
+}
+
+// GetLayerByName fetches a layer by name.
+//
+// The returned layer remains owned by the GDALDataset and should not be deleted
+// by the application.
+//
+// This function is the same as the C++ method GDALDataset::GetLayerByName()
+func (ds Dataset) GetLayerByName(name string) (Layer, error) {
+	cName := C.CString(name)
+	lyr := C.GDALDatasetGetLayerByName(ds.cval, cName)
+	if lyr == nil {
+		return Layer{nil}, fmt.Errorf("failed to get layer")
+	}
+	return Layer{lyr}, nil
 }
 
 // Generate downsampled overviews
