@@ -115,7 +115,7 @@ func TestGetLayer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ds.Layer(0)
+	_, err = ds.LayerByIndex(0)
 	if err != nil {
 		t.Error(err)
 	}

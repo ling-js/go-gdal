@@ -1525,13 +1525,13 @@ func (ds Dataset) LayerCount() int {
 	return int(C.GDALDatasetGetLayerCount(ds.cval))
 }
 
-// Layer fetches a layer by index.
+// LayerByIndex fetches a layer by index.
 //
 // The returned layer remains owned by the GDALDataset and should not be deleted
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayer()
-func (ds Dataset) Layer(layer int) (Layer, error) {
+func (ds Dataset) LayerByIndex(layer int) (Layer, error) {
 	lyr := C.GDALDatasetGetLayer(ds.cval, C.int(layer))
 	if lyr == nil {
 		return Layer{lyr}, fmt.Errorf("failed to get layer")
