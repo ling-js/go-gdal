@@ -15,10 +15,6 @@ import (
 	"unsafe"
 )
 
-/* -------------------------------------------------------------------- */
-/*      Spatial reference functions.                                    */
-/* -------------------------------------------------------------------- */
-
 type SpatialReference struct {
 	cval C.OGRSpatialReferenceH
 }

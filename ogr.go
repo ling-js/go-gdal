@@ -19,30 +19,6 @@ func init() {
 /* -------------------------------------------------------------------- */
 /*      Significant constants.                                          */
 /* -------------------------------------------------------------------- */
-
-// List of well known binary geometry types
-type GeometryType uint32
-
-const (
-	GT_Unknown               = GeometryType(C.wkbUnknown)
-	GT_Point                 = GeometryType(C.wkbPoint)
-	GT_LineString            = GeometryType(C.wkbLineString)
-	GT_Polygon               = GeometryType(C.wkbPolygon)
-	GT_MultiPoint            = GeometryType(C.wkbMultiPoint)
-	GT_MultiLineString       = GeometryType(C.wkbMultiLineString)
-	GT_MultiPolygon          = GeometryType(C.wkbMultiPolygon)
-	GT_GeometryCollection    = GeometryType(C.wkbGeometryCollection)
-	GT_None                  = GeometryType(C.wkbNone)
-	GT_LinearRing            = GeometryType(C.wkbLinearRing)
-	GT_Point25D              = GeometryType(C.wkbPoint25D)
-	GT_LineString25D         = GeometryType(C.wkbLineString25D)
-	GT_Polygon25D            = GeometryType(C.wkbPolygon25D)
-	GT_MultiPoint25D         = GeometryType(C.wkbMultiPoint25D)
-	GT_MultiLineString25D    = GeometryType(C.wkbMultiLineString25D)
-	GT_MultiPolygon25D       = GeometryType(C.wkbMultiPolygon25D)
-	GT_GeometryCollection25D = GeometryType(C.wkbGeometryCollection25D)
-)
-
 /* -------------------------------------------------------------------- */
 /*      Envelope functions                                              */
 /* -------------------------------------------------------------------- */
