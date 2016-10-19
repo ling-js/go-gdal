@@ -1520,12 +1520,12 @@ func (sourceRaster RasterBand) RasterBandCopyWholeRaster(
 	).Err()
 }
 
-// Get the number of layers in this dataset.
+// LayerCount gets the number of layers in this dataset.
 func (ds Dataset) LayerCount() int {
 	return int(C.GDALDatasetGetLayerCount(ds.cval))
 }
 
-// GetLayer fetches a layer by index.
+// Layer fetches a layer by index.
 //
 // The returned layer remains owned by the GDALDataset and should not be deleted
 // by the application.
@@ -1539,7 +1539,7 @@ func (ds Dataset) Layer(layer int) (Layer, error) {
 	return Layer{lyr}, nil
 }
 
-// GetLayerByName fetches a layer by name.
+// LayerByName fetches a layer by name.
 //
 // The returned layer remains owned by the GDALDataset and should not be deleted
 // by the application.
