@@ -1520,13 +1520,18 @@ func (sourceRaster RasterBand) RasterBandCopyWholeRaster(
 	).Err()
 }
 
+// Get the number of layers in this dataset.
+func (ds Dataset) LayerCount() int {
+	return int(C.GDALDatasetGetLayerCount(ds.cval))
+}
+
 // GetLayer fetches a layer by index.
 //
 // The returned layer remains owned by the GDALDataset and should not be deleted
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayer()
-func (ds Dataset) GetLayer(layer int) (Layer, error) {
+func (ds Dataset) Layer(layer int) (Layer, error) {
 	lyr := C.GDALDatasetGetLayer(ds.cval, C.int(layer))
 	if lyr == nil {
 		return Layer{lyr}, fmt.Errorf("failed to get layer")
@@ -1540,11 +1545,39 @@ func (ds Dataset) GetLayer(layer int) (Layer, error) {
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayerByName()
-func (ds Dataset) GetLayerByName(name string) (Layer, error) {
+func (ds Dataset) LayerByName(name string) (Layer, error) {
 	cName := C.CString(name)
 	lyr := C.GDALDatasetGetLayerByName(ds.cval, cName)
 	if lyr == nil {
 		return Layer{nil}, fmt.Errorf("failed to get layer")
+	}
+	return Layer{lyr}, nil
+}
+
+// Execute an SQL statement against the data store.
+//
+// The result of an SQL query is either NULL for statements that are in error,
+// or that have no results set, or an OGRLayer pointer representing a results
+// set from the query. Note that this OGRLayer is in addition to the layers in
+// the data store and must be destroyed with ReleaseResultSet() before the
+// dataset is closed (destroyed).
+//
+// This method is the same as the C++ method GDALDataset::ExecuteSQL()
+//
+//For more information on the SQL dialect supported internally by OGR review
+//the OGR SQL document. Some drivers (i.e. Oracle and PostGIS) pass the SQL
+//directly through to the underlying RDBMS.
+func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (Layer, error) {
+	cSQL := C.CString(sql)
+	var cDialect *C.char
+	if dialect == "" {
+		cDialect = nil
+	} else {
+		cDialect = C.CString(dialect)
+	}
+	lyr := C.GDALDatasetExecuteSQL(ds.cval, cSQL, spatialFilter.cval, cDialect)
+	if lyr == nil {
+		return Layer{nil}, fmt.Errorf("failed to execute SQL")
 	}
 	return Layer{lyr}, nil
 }

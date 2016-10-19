@@ -115,13 +115,34 @@ func TestGetLayer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ds.GetLayer(0)
+	_, err = ds.Layer(0)
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = ds.GetLayerByName("poly")
+	_, err = ds.LayerByName("poly")
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestExecuteSQL(t *testing.T) {
+	if !HTTPEnabled() {
+		t.Skip()
+	}
+	fname := "/vsizip/vsicurl/"
+	fname += "http://download.osgeo.org"
+	fname += "/gdal/CURRENT/gdalautotest-2.1.1.zip"
+	fname += "/gdalautotest-2.1.1/ogr/data/testshp/poly.shp"
+	ds, err := OpenEx(fname, ReadOnly|VectorDrivers, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lyr, err := ds.ExecuteSQL("SELECT * FROM poly", Geometry{}, "")
+	if err != nil {
+		t.Error(err)
+	}
+	if n, ok := lyr.FeatureCount(true); !ok || n < 1 {
+		t.Error("failed to get a valid layer")
 	}
 }
 
