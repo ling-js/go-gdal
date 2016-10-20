@@ -15,10 +15,6 @@ import (
 	"unsafe"
 )
 
-/* --------------------------------------------- */
-/* Misc functions                                */
-/* --------------------------------------------- */
-
 // Compute optimal PCT for RGB image
 func ComputeMedianCutPCT(
 	red, green, blue RasterBand,
@@ -300,20 +296,21 @@ func (src RasterBand) SieveFilter(
 /* Gridding functions                            */
 /* --------------------------------------------- */
 
+// TODO(kyle): this is not right
 type GridAlgorithm uint8
 
 const (
 	InverseDistanceToAPower                = GridAlgorithm(C.GGA_InverseDistanceToAPower)
-	MovingAverage                          = C.GGA_MovingAverage
-	NearestNeighbor                        = C.GGA_NearestNeighbor
-	MetricMinimum                          = C.GGA_MetricMinimum
-	MetricMaximum                          = C.GGA_MetricMaximum
-	MetricRange                            = C.GGA_MetricRange
-	MetricCount                            = C.GGA_MetricCount
-	MetricAverageDistance                  = C.GGA_MetricAverageDistance
-	MetricAverageDistancePts               = C.GGA_MetricAverageDistancePts
-	Linear                                 = C.GGA_Linear
-	InverseDistanceToAPowerNearestNeighbor = C.GGA_InverseDistanceToAPowerNearestNeighbor
+	MovingAverage                          = GridAlgorithm(C.GGA_MovingAverage)
+	NearestNeighbor                        = GridAlgorithm(C.GGA_NearestNeighbor)
+	MetricMinimum                          = GridAlgorithm(C.GGA_MetricMinimum)
+	MetricMaximum                          = GridAlgorithm(C.GGA_MetricMaximum)
+	MetricRange                            = GridAlgorithm(C.GGA_MetricRange)
+	MetricCount                            = GridAlgorithm(C.GGA_MetricCount)
+	MetricAverageDistance                  = GridAlgorithm(C.GGA_MetricAverageDistance)
+	MetricAverageDistancePts               = GridAlgorithm(C.GGA_MetricAverageDistancePts)
+	Linear                                 = GridAlgorithm(C.GGA_Linear)
+	InverseDistanceToAPowerNearestNeighbor = GridAlgorithm(C.GGA_InverseDistanceToAPowerNearestNeighbor)
 )
 
 type GridOptions struct {
