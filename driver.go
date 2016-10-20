@@ -101,3 +101,95 @@ func (driver Driver) LongName() string {
 	cDriver := driver.cval
 	return C.GoString(C.GDALGetDriverLongName(cDriver))
 }
+
+// Create a new dataset with this driver.
+func (driver Driver) Create(
+	filename string,
+	xSize, ySize, bands int,
+	dataType DataType,
+	options []string,
+) Dataset {
+	name := C.CString(filename)
+	defer C.free(unsafe.Pointer(name))
+
+	length := len(options)
+	opts := make([]*C.char, length+1)
+	for i := 0; i < length; i++ {
+		opts[i] = C.CString(options[i])
+		defer C.free(unsafe.Pointer(opts[i]))
+	}
+	opts[length] = (*C.char)(unsafe.Pointer(nil))
+
+	h := C.GDALCreate(
+		driver.cval,
+		name,
+		C.int(xSize), C.int(ySize), C.int(bands),
+		C.GDALDataType(dataType),
+		(**C.char)(unsafe.Pointer(&opts[0])),
+	)
+	return Dataset{h}
+}
+
+// Create a copy of a dataset
+func (driver Driver) CreateCopy(
+	filename string,
+	sourceDataset Dataset,
+	strict int,
+	options []string,
+	progress ProgressFunc,
+	data interface{},
+) Dataset {
+	name := C.CString(filename)
+	defer C.free(unsafe.Pointer(name))
+
+	length := len(options)
+	opts := make([]*C.char, length+1)
+	for i := 0; i < length; i++ {
+		opts[i] = C.CString(options[i])
+		defer C.free(unsafe.Pointer(opts[i]))
+	}
+	opts[length] = (*C.char)(unsafe.Pointer(nil))
+
+	var h C.GDALDatasetH
+
+	if progress == nil {
+		h = C.GDALCreateCopy(
+			driver.cval, name,
+			sourceDataset.cval,
+			C.int(strict),
+			(**C.char)(unsafe.Pointer(&opts[0])),
+			nil,
+			nil,
+		)
+	} else {
+		arg := &goGDALProgressFuncProxyArgs{
+			progress, data,
+		}
+		h = C.GDALCreateCopy(
+			driver.cval, name,
+			sourceDataset.cval,
+			C.int(strict), (**C.char)(unsafe.Pointer(&opts[0])),
+			C.goGDALProgressFuncProxyB(),
+			unsafe.Pointer(arg),
+		)
+	}
+
+	return Dataset{h}
+}
+
+// Return the driver needed to access the provided dataset name.
+func IdentifyDriver(filename string, filenameList []string) Driver {
+	cFilename := C.CString(filename)
+	defer C.free(unsafe.Pointer(cFilename))
+
+	length := len(filenameList)
+	cFilenameList := make([]*C.char, length+1)
+	for i := 0; i < length; i++ {
+		cFilenameList[i] = C.CString(filenameList[i])
+		defer C.free(unsafe.Pointer(cFilenameList[i]))
+	}
+	cFilenameList[length] = (*C.char)(unsafe.Pointer(nil))
+
+	driver := C.GDALIdentifyDriver(cFilename, (**C.char)(unsafe.Pointer(&cFilenameList[0])))
+	return Driver{driver}
+}

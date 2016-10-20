@@ -10,18 +10,27 @@ package gdal
 #cgo windows CFLAGS: -IC:/gdal/release-1600-x64/include
 */
 import "C"
-import "unsafe"
+import (
+	"errors"
+	"unsafe"
+)
 
 func init() {
 	C.OGRRegisterAll()
 }
 
-/* -------------------------------------------------------------------- */
-/*      Significant constants.                                          */
-/* -------------------------------------------------------------------- */
-/* -------------------------------------------------------------------- */
-/*      Envelope functions                                              */
-/* -------------------------------------------------------------------- */
+// OGR errors
+var (
+	ErrOGRNotEnoughData           = errors.New("not enough data")
+	ErrOGRNotEnoughMemory         = errors.New("not enough memory")
+	ErrOGRUnsupportedGeometryType = errors.New("unsupported geometry type")
+	ErrOGRUnsupportedOperation    = errors.New("unsupported operation")
+	ErrOGRCorruptData             = errors.New("corrupt data")
+	ErrOGRFailure                 = errors.New("failure")
+	ErrOGRUnsupportedSRS          = errors.New("unsupported SRS")
+	ErrOGRInvalidHandle           = errors.New("invalid handle")
+	ErrOGRNonExistingFeature      = errors.New("non-existing feature")
+)
 
 type Envelope struct {
 	cval C.OGREnvelope
@@ -464,17 +473,23 @@ func (ds DataSource) LayerCount() int {
 }
 
 // Fetch a layer of this data source by index
-func (ds DataSource) LayerByIndex(index int) Layer {
+func (ds DataSource) LayerByIndex(index int) *Layer {
 	layer := C.OGR_DS_GetLayer(ds.cval, C.int(index))
-	return Layer{layer}
+	if layer == nil {
+		return nil
+	}
+	return &Layer{layer}
 }
 
 // Fetch a layer of this data source by name
-func (ds DataSource) LayerByName(name string) Layer {
+func (ds DataSource) LayerByName(name string) *Layer {
 	cString := C.CString(name)
 	defer C.free(unsafe.Pointer(cString))
 	layer := C.OGR_DS_GetLayerByName(ds.cval, cString)
-	return Layer{layer}
+	if layer == nil {
+		return nil
+	}
+	return &Layer{layer}
 }
 
 // Delete the layer from the data source
