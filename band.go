@@ -18,20 +18,20 @@ import (
 )
 
 // Fetch the pixel data type for this band
-func (rasterBand RasterBand) RasterDataType() DataType {
-	dataType := C.GDALGetRasterDataType(rasterBand.cval)
+func (band *RasterBand) RasterDataType() DataType {
+	dataType := C.GDALGetRasterDataType(band.cval)
 	return DataType(dataType)
 }
 
 // Fetch the "natural" block size of this band
-func (rasterBand RasterBand) BlockSize() (int, int) {
+func (band *RasterBand) BlockSize() (int, int) {
 	var xSize, ySize int
-	C.GDALGetBlockSize(rasterBand.cval, (*C.int)(unsafe.Pointer(&xSize)), (*C.int)(unsafe.Pointer(&ySize)))
+	C.GDALGetBlockSize(band.cval, (*C.int)(unsafe.Pointer(&xSize)), (*C.int)(unsafe.Pointer(&ySize)))
 	return xSize, ySize
 }
 
 // Advise driver of upcoming read requests
-func (rasterBand RasterBand) AdviseRead(
+func (band *RasterBand) AdviseRead(
 	xOff, yOff, xSize, ySize, bufXSize, bufYSize int,
 	dataType DataType,
 	options []string,
@@ -45,7 +45,7 @@ func (rasterBand RasterBand) AdviseRead(
 	cOptions[length] = (*C.char)(unsafe.Pointer(nil))
 
 	return C.GDALRasterAdviseRead(
-		rasterBand.cval,
+		band.cval,
 		C.int(xOff), C.int(yOff), C.int(xSize), C.int(ySize), C.int(bufXSize), C.int(bufYSize),
 		C.GDALDataType(dataType),
 		(**C.char)(unsafe.Pointer(&cOptions[0])),
@@ -53,7 +53,7 @@ func (rasterBand RasterBand) AdviseRead(
 }
 
 // Read / Write a region of image data for this band
-func (rasterBand RasterBand) IO(
+func (band *RasterBand) IO(
 	rwFlag RWFlag,
 	xOff, yOff, xSize, ySize int,
 	buffer interface{},
@@ -92,7 +92,7 @@ func (rasterBand RasterBand) IO(
 	}
 
 	return C.GDALRasterIO(
-		rasterBand.cval,
+		band.cval,
 		C.GDALRWFlag(rwFlag),
 		C.int(xOff), C.int(yOff), C.int(xSize), C.int(ySize),
 		dataPtr,
@@ -103,100 +103,106 @@ func (rasterBand RasterBand) IO(
 }
 
 // Read a block of image data efficiently
-func (rasterBand RasterBand) ReadBlock(xOff, yOff int, dataPtr unsafe.Pointer) error {
-	return C.GDALReadBlock(rasterBand.cval, C.int(xOff), C.int(yOff), dataPtr).Err()
+func (band *RasterBand) ReadBlock(xOff, yOff int, dataPtr unsafe.Pointer) error {
+	return C.GDALReadBlock(band.cval, C.int(xOff), C.int(yOff), dataPtr).Err()
 }
 
 // Write a block of image data efficiently
-func (rasterBand RasterBand) WriteBlock(xOff, yOff int, dataPtr unsafe.Pointer) error {
-	return C.GDALWriteBlock(rasterBand.cval, C.int(xOff), C.int(yOff), dataPtr).Err()
+func (band *RasterBand) WriteBlock(xOff, yOff int, dataPtr unsafe.Pointer) error {
+	return C.GDALWriteBlock(band.cval, C.int(xOff), C.int(yOff), dataPtr).Err()
 }
 
 // Fetch X size of raster
-func (rasterBand RasterBand) XSize() int {
-	xSize := C.GDALGetRasterBandXSize(rasterBand.cval)
+func (band *RasterBand) XSize() int {
+	xSize := C.GDALGetRasterBandXSize(band.cval)
 	return int(xSize)
 }
 
 // Fetch Y size of raster
-func (rasterBand RasterBand) YSize() int {
-	ySize := C.GDALGetRasterBandYSize(rasterBand.cval)
+func (band *RasterBand) YSize() int {
+	ySize := C.GDALGetRasterBandYSize(band.cval)
 	return int(ySize)
 }
 
 // Find out if we have update permission for this band
-func (rasterBand RasterBand) GetAccess() Access {
-	access := C.GDALGetRasterAccess(rasterBand.cval)
+func (band *RasterBand) GetAccess() Access {
+	access := C.GDALGetRasterAccess(band.cval)
 	return Access(access)
 }
 
 // Fetch the band number of this raster band
-func (rasterBand RasterBand) BandNumber() int {
-	bandNumber := C.GDALGetBandNumber(rasterBand.cval)
+func (band *RasterBand) BandNumber() int {
+	bandNumber := C.GDALGetBandNumber(band.cval)
 	return int(bandNumber)
 }
 
 // Fetch the owning dataset handle
-func (rasterBand RasterBand) GetDataset() Dataset {
-	dataset := C.GDALGetBandDataset(rasterBand.cval)
-	return Dataset{dataset}
+func (band *RasterBand) GetDataset() *Dataset {
+	dataset := C.GDALGetBandDataset(band.cval)
+	return &Dataset{dataset}
 }
 
 // How should this band be interpreted as color?
-func (rasterBand RasterBand) ColorInterp() ColorInterp {
-	colorInterp := C.GDALGetRasterColorInterpretation(rasterBand.cval)
+func (band *RasterBand) ColorInterp() ColorInterp {
+	colorInterp := C.GDALGetRasterColorInterpretation(band.cval)
 	return ColorInterp(colorInterp)
 }
 
 // Set color interpretation of the raster band
-func (rasterBand RasterBand) SetColorInterp(colorInterp ColorInterp) error {
-	return C.GDALSetRasterColorInterpretation(rasterBand.cval, C.GDALColorInterp(colorInterp)).Err()
+func (band *RasterBand) SetColorInterp(colorInterp ColorInterp) error {
+	return C.GDALSetRasterColorInterpretation(band.cval, C.GDALColorInterp(colorInterp)).Err()
 }
 
 // Fetch the color table associated with this raster band
-func (rasterBand RasterBand) ColorTable() ColorTable {
-	colorTable := C.GDALGetRasterColorTable(rasterBand.cval)
-	return ColorTable{colorTable}
+func (band *RasterBand) ColorTable() *ColorTable {
+	ct := C.GDALGetRasterColorTable(band.cval)
+	if ct == nil {
+		return nil
+	}
+	return &ColorTable{ct}
 }
 
 // Set the raster color table for this raster band
-func (rasterBand RasterBand) SetColorTable(colorTable ColorTable) error {
-	return C.GDALSetRasterColorTable(rasterBand.cval, colorTable.cval).Err()
+func (band *RasterBand) SetColorTable(colorTable ColorTable) error {
+	return C.GDALSetRasterColorTable(band.cval, colorTable.cval).Err()
 }
 
 // Check for arbitrary overviews
-func (rasterBand RasterBand) HasArbitraryOverviews() int {
-	yes := C.GDALHasArbitraryOverviews(rasterBand.cval)
+func (band *RasterBand) HasArbitraryOverviews() int {
+	yes := C.GDALHasArbitraryOverviews(band.cval)
 	return int(yes)
 }
 
 // Return the number of overview layers available
-func (rasterBand RasterBand) OverviewCount() int {
-	count := C.GDALGetOverviewCount(rasterBand.cval)
+func (band *RasterBand) OverviewCount() int {
+	count := C.GDALGetOverviewCount(band.cval)
 	return int(count)
 }
 
 // Fetch overview raster band object
-func (rasterBand RasterBand) Overview(level int) RasterBand {
-	overview := C.GDALGetOverview(rasterBand.cval, C.int(level))
-	return RasterBand{overview}
+func (band *RasterBand) Overview(level int) *RasterBand {
+	overview := C.GDALGetOverview(band.cval, C.int(level))
+	if overview == nil {
+		return nil
+	}
+	return &RasterBand{overview}
 }
 
 // Fetch the no data value for this band
-func (rasterBand RasterBand) NoDataValue() (val float64, valid bool) {
+func (band *RasterBand) NoDataValue() (val float64, valid bool) {
 	var success int
-	noDataVal := C.GDALGetRasterNoDataValue(rasterBand.cval, (*C.int)(unsafe.Pointer(&success)))
+	noDataVal := C.GDALGetRasterNoDataValue(band.cval, (*C.int)(unsafe.Pointer(&success)))
 	return float64(noDataVal), success != 0
 }
 
 // Set the no data value for this band
-func (rasterBand RasterBand) SetNoDataValue(val float64) error {
-	return C.GDALSetRasterNoDataValue(rasterBand.cval, C.double(val)).Err()
+func (band *RasterBand) SetNoDataValue(val float64) error {
+	return C.GDALSetRasterNoDataValue(band.cval, C.double(val)).Err()
 }
 
 // Fetch the list of category names for this raster
-func (rasterBand RasterBand) CategoryNames() []string {
-	p := C.GDALGetRasterCategoryNames(rasterBand.cval)
+func (band *RasterBand) CategoryNames() []string {
+	p := C.GDALGetRasterCategoryNames(band.cval)
 	var strings []string
 	q := uintptr(unsafe.Pointer(p))
 	for {
@@ -212,7 +218,7 @@ func (rasterBand RasterBand) CategoryNames() []string {
 }
 
 // Set the category names for this band
-func (rasterBand RasterBand) SetRasterCategoryNames(names []string) error {
+func (band *RasterBand) SetRasterCategoryNames(names []string) error {
 	length := len(names)
 	cStrings := make([]*C.char, length+1)
 	for i := 0; i < length; i++ {
@@ -221,27 +227,27 @@ func (rasterBand RasterBand) SetRasterCategoryNames(names []string) error {
 	}
 	cStrings[length] = (*C.char)(unsafe.Pointer(nil))
 
-	return C.GDALSetRasterCategoryNames(rasterBand.cval, (**C.char)(unsafe.Pointer(&cStrings[0]))).Err()
+	return C.GDALSetRasterCategoryNames(band.cval, (**C.char)(unsafe.Pointer(&cStrings[0]))).Err()
 }
 
 // Fetch the minimum value for this band
-func (rasterBand RasterBand) GetMinimum() (val float64, valid bool) {
+func (band *RasterBand) GetMinimum() (val float64, valid bool) {
 	var success int
-	min := C.GDALGetRasterMinimum(rasterBand.cval, (*C.int)(unsafe.Pointer(&success)))
+	min := C.GDALGetRasterMinimum(band.cval, (*C.int)(unsafe.Pointer(&success)))
 	return float64(min), success != 0
 }
 
 // Fetch the maximum value for this band
-func (rasterBand RasterBand) GetMaximum() (val float64, valid bool) {
+func (band *RasterBand) GetMaximum() (val float64, valid bool) {
 	var success int
-	max := C.GDALGetRasterMaximum(rasterBand.cval, (*C.int)(unsafe.Pointer(&success)))
+	max := C.GDALGetRasterMaximum(band.cval, (*C.int)(unsafe.Pointer(&success)))
 	return float64(max), success != 0
 }
 
 // Fetch image statistics
-func (rasterBand RasterBand) GetStatistics(approxOK, force int) (min, max, mean, stdDev float64) {
+func (band *RasterBand) GetStatistics(approxOK, force int) (min, max, mean, stdDev float64) {
 	C.GDALGetRasterStatistics(
-		rasterBand.cval,
+		band.cval,
 		C.int(approxOK),
 		C.int(force),
 		(*C.double)(unsafe.Pointer(&min)),
@@ -253,7 +259,7 @@ func (rasterBand RasterBand) GetStatistics(approxOK, force int) (min, max, mean,
 }
 
 // Compute image statistics
-func (rasterBand RasterBand) ComputeStatistics(
+func (band *RasterBand) ComputeStatistics(
 	approxOK int,
 	progress ProgressFunc,
 	data interface{},
@@ -261,7 +267,7 @@ func (rasterBand RasterBand) ComputeStatistics(
 	arg := &goGDALProgressFuncProxyArgs{progress, data}
 
 	C.GDALComputeRasterStatistics(
-		rasterBand.cval,
+		band.cval,
 		C.int(approxOK),
 		(*C.double)(unsafe.Pointer(&min)),
 		(*C.double)(unsafe.Pointer(&max)),
@@ -274,9 +280,9 @@ func (rasterBand RasterBand) ComputeStatistics(
 }
 
 // Set statistics on raster band
-func (rasterBand RasterBand) SetStatistics(min, max, mean, stdDev float64) error {
+func (band *RasterBand) SetStatistics(min, max, mean, stdDev float64) error {
 	return C.GDALSetRasterStatistics(
-		rasterBand.cval,
+		band.cval,
 		C.double(min),
 		C.double(max),
 		C.double(mean),
@@ -285,56 +291,56 @@ func (rasterBand RasterBand) SetStatistics(min, max, mean, stdDev float64) error
 }
 
 // Return raster unit type
-func (rasterBand RasterBand) GetUnitType() string {
-	cString := C.GDALGetRasterUnitType(rasterBand.cval)
+func (band *RasterBand) GetUnitType() string {
+	cString := C.GDALGetRasterUnitType(band.cval)
 	return C.GoString(cString)
 }
 
 // Set unit type
-func (rasterBand RasterBand) SetUnitType(unit string) error {
+func (band *RasterBand) SetUnitType(unit string) error {
 	cString := C.CString(unit)
 	defer C.free(unsafe.Pointer(cString))
 
-	return C.GDALSetRasterUnitType(rasterBand.cval, cString).Err()
+	return C.GDALSetRasterUnitType(band.cval, cString).Err()
 }
 
 // Fetch the raster value offset
-func (rasterBand RasterBand) GetOffset() (float64, bool) {
+func (band *RasterBand) GetOffset() (float64, bool) {
 	var success int
-	val := C.GDALGetRasterOffset(rasterBand.cval, (*C.int)(unsafe.Pointer(&success)))
+	val := C.GDALGetRasterOffset(band.cval, (*C.int)(unsafe.Pointer(&success)))
 	return float64(val), success != 0
 }
 
 // Set scaling offset
-func (rasterBand RasterBand) SetOffset(offset float64) error {
-	return C.GDALSetRasterOffset(rasterBand.cval, C.double(offset)).Err()
+func (band *RasterBand) SetOffset(offset float64) error {
+	return C.GDALSetRasterOffset(band.cval, C.double(offset)).Err()
 }
 
 // Fetch the raster value scale
-func (rasterBand RasterBand) GetScale() (float64, bool) {
+func (band *RasterBand) GetScale() (float64, bool) {
 	var success int
-	val := C.GDALGetRasterScale(rasterBand.cval, (*C.int)(unsafe.Pointer(&success)))
+	val := C.GDALGetRasterScale(band.cval, (*C.int)(unsafe.Pointer(&success)))
 	return float64(val), success != 0
 }
 
 // Set scaling ratio
-func (rasterBand RasterBand) SetScale(scale float64) error {
-	return C.GDALSetRasterScale(rasterBand.cval, C.double(scale)).Err()
+func (band *RasterBand) SetScale(scale float64) error {
+	return C.GDALSetRasterScale(band.cval, C.double(scale)).Err()
 }
 
 // Compute the min / max values for a band
-func (rasterBand RasterBand) ComputeMinMax(approxOK int) (min, max float64) {
+func (band *RasterBand) ComputeMinMax(approxOK int) (min, max float64) {
 	var minmax [2]float64
 	C.GDALComputeRasterMinMax(
-		rasterBand.cval,
+		band.cval,
 		C.int(approxOK),
 		(*C.double)(unsafe.Pointer(&minmax[0])))
 	return minmax[0], minmax[1]
 }
 
 // Flush raster data cache
-func (rasterBand RasterBand) FlushCache() {
-	C.GDALFlushRasterCache(rasterBand.cval)
+func (band *RasterBand) FlushCache() {
+	C.GDALFlushRasterCache(band.cval)
 }
 
 // Compute raster histogram
@@ -409,8 +415,8 @@ func (rb RasterBand) DefaultHistogram(
 // Unimplemented: GetRasterSampleOverview
 
 // Fill this band with a constant value
-func (rasterBand RasterBand) Fill(real, imaginary float64) error {
-	return C.GDALFillRaster(rasterBand.cval, C.double(real), C.double(imaginary)).Err()
+func (band *RasterBand) Fill(real, imaginary float64) error {
+	return C.GDALFillRaster(band.cval, C.double(real), C.double(imaginary)).Err()
 }
 
 // Unimplemented: ComputeBandStats
@@ -418,38 +424,41 @@ func (rasterBand RasterBand) Fill(real, imaginary float64) error {
 // Unimplemented: OverviewMagnitudeCorrection
 
 // Fetch default Raster Attribute Table
-func (rasterBand RasterBand) GetDefaultRAT() RasterAttributeTable {
-	rat := C.GDALGetDefaultRAT(rasterBand.cval)
+func (band *RasterBand) GetDefaultRAT() RasterAttributeTable {
+	rat := C.GDALGetDefaultRAT(band.cval)
 	return RasterAttributeTable{rat}
 }
 
 // Set default Raster Attribute Table
-func (rasterBand RasterBand) SetDefaultRAT(rat RasterAttributeTable) error {
-	return C.GDALSetDefaultRAT(rasterBand.cval, rat.cval).Err()
+func (band *RasterBand) SetDefaultRAT(rat RasterAttributeTable) error {
+	return C.GDALSetDefaultRAT(band.cval, rat.cval).Err()
 }
 
 // Unimplemented: AddDerivedBandPixelFunc
 
 // Return the mask band associated with the band
-func (rasterBand RasterBand) GetMaskBand() RasterBand {
-	mask := C.GDALGetMaskBand(rasterBand.cval)
-	return RasterBand{mask}
+func (band *RasterBand) GetMaskBand() *RasterBand {
+	mask := C.GDALGetMaskBand(band.cval)
+	if mask == nil {
+		return nil
+	}
+	return &RasterBand{mask}
 }
 
 // Return the status flags of the mask band associated with the band
-func (rasterBand RasterBand) GetMaskFlags() int {
-	flags := C.GDALGetMaskFlags(rasterBand.cval)
+func (band *RasterBand) GetMaskFlags() int {
+	flags := C.GDALGetMaskFlags(band.cval)
 	return int(flags)
 }
 
 // Adds a mask band to the current band
-func (rasterBand RasterBand) CreateMaskBand(flags int) error {
-	return C.GDALCreateMaskBand(rasterBand.cval, C.int(flags)).Err()
+func (band *RasterBand) CreateMaskBand(flags int) error {
+	return C.GDALCreateMaskBand(band.cval, C.int(flags)).Err()
 }
 
 // Copy all raster band raster data
-func (sourceRaster RasterBand) RasterBandCopyWholeRaster(
-	destRaster RasterBand,
+func (sourceRaster *RasterBand) RasterBandCopyWholeRaster(
+	destRaster *RasterBand,
 	options []string,
 	progress ProgressFunc,
 	data interface{},
