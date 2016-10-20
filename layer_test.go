@@ -29,18 +29,22 @@ func TestLayerGeomType(t *testing.T) {
 	}
 }
 
-func TestNextFeature(t *testing.T) {
-	lyr := getLayer(t)
-	feat := lyr.NextFeature()
-	if feat == nil {
-		t.Fatal("nil feature handle")
-	}
-}
-
 func TestFeatureCount(t *testing.T) {
 	lyr := getLayer(t)
 	if n, ok := lyr.FeatureCount(true); !ok || n != 10 {
 		t.Errorf("invalid feature count: %d", n)
+	}
+}
+
+func TestNextFeature(t *testing.T) {
+	lyr := getLayer(t)
+	n, _ := lyr.FeatureCount(true)
+	i := 0
+	for feat := lyr.NextFeature(); feat != nil; feat = lyr.NextFeature() {
+		i++
+	}
+	if i != n {
+		t.Errorf("did not get %d features, only %d", n, i)
 	}
 }
 
@@ -86,5 +90,42 @@ func TestSpatialFilters(t *testing.T) {
 	feat := lyr.NextFeature()
 	if feat == nil || feat.FieldAsInteger(feat.FieldIndex("EAS_ID")) != 173 {
 		t.Error("failed to get feature with proper fid")
+	}
+}
+
+func TestAttributeFilter(t *testing.T) {
+	lyr := getLayer(t)
+	lyr.SetAttributeFilter("EAS_ID=173")
+	lyr.ResetReading()
+	if n, ok := lyr.FeatureCount(true); !ok || n != 1 {
+		t.Error("failed to set attribute filter")
+	}
+}
+
+func TestResetReading(t *testing.T) {
+	lyr := getLayer(t)
+	lyr.NextFeature()
+	lyr.ResetReading()
+	n, _ := lyr.FeatureCount(true)
+	i := 0
+	for feat := lyr.NextFeature(); feat != nil; feat = lyr.NextFeature() {
+		i++
+	}
+	if i != n {
+		t.Error("failed to reset reading")
+	}
+}
+
+func TestIgnoreFields(t *testing.T) {
+	t.Skip("find a format that supports ignoring fields")
+	lyr := getLayer(t)
+	err := lyr.SetIgnoredFields([]string{"EAS_ID"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	feat := lyr.NextFeature()
+	if feat.FieldIndex("EAS_ID") != -1 {
+		t.Error("ignored fields not ignored")
+		t.Log(feat.FieldIndex("EAS_ID"))
 	}
 }

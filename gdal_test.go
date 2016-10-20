@@ -90,7 +90,7 @@ func TestHistogram(t *testing.T) {
 	band.FlushCache()
 	hist, err := band.Histogram(0, 100, 10, 1, 0, DummyProgress, nil)
 	if err != nil {
-		t.Errorf(err)
+		t.Error(err)
 	}
 	for i := 0; i < 10; i++ {
 		if hist[i] != 10 {
@@ -103,10 +103,7 @@ func TestGetLayer(t *testing.T) {
 	if !HTTPEnabled() {
 		t.Skip()
 	}
-	fname := "/vsizip/vsicurl/"
-	fname += "http://download.osgeo.org"
-	fname += "/gdal/CURRENT/gdalautotest-2.1.1.zip"
-	fname += "/gdalautotest-2.1.1/ogr/data/testshp/poly.shp"
+	fname := "test/poly.shp"
 	ds, err := OpenEx(fname, ReadOnly|VectorDrivers, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -125,10 +122,7 @@ func TestExecuteSQL(t *testing.T) {
 	if !HTTPEnabled() {
 		t.Skip()
 	}
-	fname := "/vsizip/vsicurl/"
-	fname += "http://download.osgeo.org"
-	fname += "/gdal/CURRENT/gdalautotest-2.1.1.zip"
-	fname += "/gdalautotest-2.1.1/ogr/data/testshp/poly.shp"
+	fname := "test/poly.shp"
 	ds, err := OpenEx(fname, ReadOnly|VectorDrivers, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -145,8 +139,7 @@ func TestExecuteSQL(t *testing.T) {
 func TestConfigOption(t *testing.T) {
 	k, v := "GDAL_GO_TEST", "ON"
 	SetConfigOption(k, v)
-	value := GetConfigOption(k, "")
-	if value != v {
-		t.Errorf("Invalid value: %s\n", value)
+	if GetConfigOption(k, "") != v {
+		t.Errorf("Invalid value: %s\n", GetConfigOption(k, ""))
 	}
 }

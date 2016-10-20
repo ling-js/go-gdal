@@ -61,7 +61,7 @@ func (layer *Layer) SetAttributeFilter(filter string) error {
 	return C.OGR_L_SetAttributeFilter(layer.cval, cFilter).Err()
 }
 
-// Reset reading to start on the first featre
+// Reset reading to start on the first feature
 func (layer *Layer) ResetReading() {
 	C.OGR_L_ResetReading(layer.cval)
 }
@@ -69,6 +69,9 @@ func (layer *Layer) ResetReading() {
 // Fetch the next available feature from this layer
 func (layer *Layer) NextFeature() *Feature {
 	feature := C.OGR_L_GetNextFeature(layer.cval)
+	if feature == nil {
+		return nil
+	}
 	return &Feature{feature}
 }
 
@@ -84,12 +87,12 @@ func (layer *Layer) Feature(index int) Feature {
 }
 
 // Rewrite the provided feature
-func (layer *Layer) SetFeature(feature Feature) error {
+func (layer *Layer) SetFeature(feature *Feature) error {
 	return C.OGR_L_SetFeature(layer.cval, feature.cval).Err()
 }
 
 // Create and write a new feature within a layer
-func (layer *Layer) Create(feature Feature) error {
+func (layer *Layer) Create(feature *Feature) error {
 	return C.OGR_L_CreateFeature(layer.cval, feature.cval).Err()
 }
 
