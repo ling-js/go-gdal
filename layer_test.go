@@ -3,7 +3,7 @@ package gdal
 import "testing"
 
 func getLayer(t *testing.T) *Layer {
-	fname := "/vsizip/test/gdalautotest-2.1.1.zip/gdalautotest-2.1.1/ogr/data/testshp/poly.shp"
+	fname := "test/poly.shp"
 	ds, err := OpenEx(fname, VectorDrivers|ReadOnly, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestFeatureCount(t *testing.T) {
 	}
 }
 
-func TestSpatialFilter(t *testing.T) {
+func TestSpatialFilters(t *testing.T) {
 	// Extent: (478315.531250, 4762880.500000) - (481645.312500, 4765610.500000)
 	lyr := getLayer(t)
 	if lyr.SpatialFilter() != nil {
@@ -71,5 +71,20 @@ func TestSpatialFilter(t *testing.T) {
 	if n, ok := lyr.FeatureCount(true); ok != true || n != 10 {
 		t.Error("spatial filter set")
 	}
-	// TODO(kyle): add test for filter inclusion, use SetSpatialFilterRect
+	lyr.SetSpatialFilterRect(478903, 4764757, 478904, 4764756)
+	lyr.ResetReading()
+	if lyr.SpatialFilter() == nil {
+		t.Error("spatial filter not set")
+	}
+	n, ok := lyr.FeatureCount(true)
+	if ok != true {
+		t.Error("failed to get feature count")
+	}
+	if n != 1 {
+		t.Error("spatial filter does not include expected feature")
+	}
+	feat := lyr.NextFeature()
+	if feat == nil || feat.FieldAsInteger(feat.FieldIndex("EAS_ID")) != 173 {
+		t.Error("failed to get feature with proper fid")
+	}
 }

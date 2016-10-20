@@ -98,7 +98,7 @@ func (feature Feature) IsFieldSet(index int) bool {
 }
 
 // Clear a field and mark it as unset
-func (feature Feature) UnnsetField(index int) {
+func (feature Feature) UnsetField(index int) {
 	C.OGR_F_UnsetField(feature.cval, C.int(index))
 }
 
