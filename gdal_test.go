@@ -11,7 +11,7 @@ import (
 func TestTiffDriver(t *testing.T) {
 	_, err := GetDriverByName("GTiff")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	}
 }
 
@@ -72,23 +72,25 @@ func TestOpenExMismatchFlags(t *testing.T) {
 func TestHistogram(t *testing.T) {
 	drv, err := GetDriverByName("MEM")
 	if err != nil {
-		t.Errorf("%+v", err)
+		t.Error(err)
 	}
 	ds := drv.Create("/vsimem/tmp", 10, 10, 1, Byte, nil)
 	defer ds.Close()
 	band := ds.RasterBand(1)
 	data := make([]uint8, 100)
+	cs := 0
 	for i := uint8(0); i < 100; i++ {
 		data[i] = i
+		cs += int(i)
 	}
 	err = band.IO(Write, 0, 0, 10, 10, data, 10, 10, 0, 0)
 	if err != nil {
-		t.Errorf("%+v", err)
+		t.Error(err)
 	}
 	band.FlushCache()
 	hist, err := band.Histogram(0, 100, 10, 1, 0, DummyProgress, nil)
 	if err != nil {
-		t.Errorf("%+v", err)
+		t.Errorf(err)
 	}
 	for i := 0; i < 10; i++ {
 		if hist[i] != 10 {
