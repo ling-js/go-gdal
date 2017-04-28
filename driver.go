@@ -13,20 +13,21 @@ package gdal
 import "C"
 
 import (
-	"fmt"
+	"errors"
 	"unsafe"
 )
 
+var ErrInvalidDriver = errors.New("driver not found")
+
 // Return the driver by short name
-func GetDriverByName(driverName string) (Driver, error) {
+func GetDriverByName(driverName string) (*Driver, error) {
 	cName := C.CString(driverName)
 	defer C.free(unsafe.Pointer(cName))
-
 	driver := C.GDALGetDriverByName(cName)
 	if driver == nil {
-		return Driver{driver}, fmt.Errorf("Error: driver '%s' not found", driverName)
+		return nil, ErrInvalidDriver
 	}
-	return Driver{driver}, nil
+	return &Driver{driver}, nil
 }
 
 // Fetch the number of registered drivers.
@@ -36,9 +37,12 @@ func GetDriverCount() int {
 }
 
 // Fetch driver by index
-func GetDriver(index int) Driver {
+func GetDriver(index int) (*Driver, error) {
 	driver := C.GDALGetDriver(C.int(index))
-	return Driver{driver}
+	if driver == nil {
+		return nil, ErrInvalidDriver
+	}
+	return &Driver{driver}, nil
 }
 
 // Destroy a GDAL driver

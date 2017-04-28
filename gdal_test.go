@@ -20,6 +20,16 @@ func TestShapeDriver(t *testing.T) {
 	drv.TestCapability("NA")
 }
 
+func TestInvalidDriver(t *testing.T) {
+	drv, err := GetDriverByName("FOO")
+	if err == nil {
+		t.Error("fetched invalid driver")
+	}
+	if drv != nil {
+		_ = drv.ShortName()
+	}
+}
+
 func TestOpen(t *testing.T) {
 	ds, err := Open("test/small_world.tif", ReadOnly)
 	if err != nil {

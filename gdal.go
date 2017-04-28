@@ -549,9 +549,8 @@ func (object *Driver) MetadataItem(name, domain string) string {
 /* ==================================================================== */
 
 // Get the driver to which this dataset relates
-func (dataset Dataset) Driver() Driver {
-	driver := Driver{C.GDALGetDatasetDriver(dataset.cval)}
-	return driver
+func (dataset Dataset) Driver() *Driver {
+	return &Driver{C.GDALGetDatasetDriver(dataset.cval)}
 }
 
 // Fetch files forming the dataset.
@@ -567,7 +566,6 @@ func (dataset Dataset) FileList() []string {
 		strings = append(strings, C.GoString(*p))
 		q += unsafe.Sizeof(q)
 	}
-
 	return strings
 }
 
@@ -932,7 +930,7 @@ func (ds Dataset) LayerByName(name string) (Layer, error) {
 // For more information on the SQL dialect supported internally by OGR review
 // the OGR SQL document. Some drivers (i.e. Oracle and PostGIS) pass the SQL
 // directly through to the underlying RDBMS.
-func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (Layer, error) {
+func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (*Layer, error) {
 	cSQL := C.CString(sql)
 	var cDialect *C.char
 	if dialect == "" {
@@ -942,9 +940,9 @@ func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string)
 	}
 	lyr := C.GDALDatasetExecuteSQL(ds.cval, cSQL, spatialFilter.cval, cDialect)
 	if lyr == nil {
-		return Layer{nil}, fmt.Errorf("failed to execute SQL")
+		return nil, fmt.Errorf("failed to execute SQL")
 	}
-	return Layer{lyr}, nil
+	return &Layer{lyr}, nil
 }
 
 // Generate downsampled overviews
