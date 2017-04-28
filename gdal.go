@@ -607,7 +607,7 @@ var ErrIllegalBand = errors.New("illegal band #")
 func (dataset Dataset) RasterBand(band int) (*RasterBand, error) {
 	p := C.GDALGetRasterBand(dataset.cval, C.int(band))
 	if p == nil {
-		return nil, ErrInvalidBand
+		return nil, ErrIllegalBand
 	}
 	return &RasterBand{C.GDALGetRasterBand(dataset.cval, C.int(band))}, nil
 }
