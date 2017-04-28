@@ -740,7 +740,7 @@ func (dataset Dataset) AdviseRead(
 }
 
 // Fetch the projection definition string for this dataset
-func (dataset Dataset) Projection() string {
+func (dataset Dataset) ProjectionRef() string {
 	proj := C.GoString(C.GDALGetProjectionRef(dataset.cval))
 	return proj
 }
@@ -894,7 +894,7 @@ func (ds Dataset) LayerCount() int {
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayer()
-func (ds Dataset) LayerByIndex(layer int) (Layer, error) {
+func (ds Dataset) Layer(layer int) (Layer, error) {
 	lyr := C.GDALDatasetGetLayer(ds.cval, C.int(layer))
 	if lyr == nil {
 		return Layer{lyr}, fmt.Errorf("failed to get layer")

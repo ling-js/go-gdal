@@ -23,7 +23,7 @@ func (layer *Layer) Name() string {
 }
 
 // Return the layer geometry type
-func (layer *Layer) Type() GeometryType {
+func (layer *Layer) GeomType() GeometryType {
 	gt := C.OGR_L_GetGeomType(layer.cval)
 	return GeometryType(gt)
 }
@@ -108,7 +108,7 @@ func (layer *Layer) Definition() FeatureDefinition {
 }
 
 // Fetch the spatial reference system for this layer
-func (layer *Layer) SpatialReference() SpatialReference {
+func (layer *Layer) SpatialRef() SpatialReference {
 	sr := C.OGR_L_GetSpatialRef(layer.cval)
 	return SpatialReference{sr}
 }

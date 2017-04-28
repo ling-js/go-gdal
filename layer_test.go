@@ -8,7 +8,7 @@ func getLayer(t *testing.T) *Layer {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lyr, err := ds.LayerByIndex(0)
+	lyr, err := ds.Layer(0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,8 +24,8 @@ func TestLayerName(t *testing.T) {
 
 func TestLayerGeomType(t *testing.T) {
 	lyr := getLayer(t)
-	if lyr.Type() != GT_Polygon {
-		t.Errorf("invalid geometry type: %+v", lyr.Type())
+	if lyr.GeomType() != GT_Polygon {
+		t.Errorf("invalid geometry type: %+v", lyr.GeomType())
 	}
 }
 
@@ -55,7 +55,7 @@ func TestSpatialFilters(t *testing.T) {
 		t.Errorf("spatial filter not nil")
 	}
 	// Create a spatial filter that has no features
-	geom, err := CreateFromWKT("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", lyr.SpatialReference())
+	geom, err := CreateFromWKT("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", lyr.SpatialRef())
 	if err != nil {
 		t.Fatal("could not create filter geometry")
 	}

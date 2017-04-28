@@ -131,7 +131,7 @@ func (band *RasterBand) GetAccess() Access {
 }
 
 // Fetch the band number of this raster band
-func (band *RasterBand) BandNumber() int {
+func (band *RasterBand) Band() int {
 	bandNumber := C.GDALGetBandNumber(band.cval)
 	return int(bandNumber)
 }
