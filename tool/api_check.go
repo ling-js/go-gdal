@@ -87,6 +87,9 @@ func variants(f string) []string {
 		if i := strings.Index(s, "Wkt"); i >= 0 {
 			v = append(v, strings.Replace(s, "Wkt", "WKT", -1))
 			v = append(v, strings.Replace(f, "Wkt", "WKT", -1))
+		} else if i := strings.Index(s, "Url"); i >= 0 {
+			v = append(v, strings.Replace(s, "Url", "URL", -1))
+			v = append(v, strings.Replace(f, "Url", "WKT", -1))
 		}
 	}
 	return v

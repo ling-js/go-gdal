@@ -92,12 +92,12 @@ func (layer *Layer) SetFeature(feature *Feature) error {
 }
 
 // Create and write a new feature within a layer
-func (layer *Layer) Create(feature *Feature) error {
+func (layer *Layer) CreateFeature(feature *Feature) error {
 	return C.OGR_L_CreateFeature(layer.cval, feature.cval).Err()
 }
 
 // Delete indicated feature from layer
-func (layer *Layer) Delete(index int) error {
+func (layer *Layer) DeleteFeature(index int) error {
 	return C.OGR_L_DeleteFeature(layer.cval, C.GIntBig(index)).Err()
 }
 
