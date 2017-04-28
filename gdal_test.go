@@ -76,7 +76,10 @@ func TestHistogram(t *testing.T) {
 	}
 	ds := drv.Create("/vsimem/tmp", 10, 10, 1, Byte, nil)
 	defer ds.Close()
-	band := ds.RasterBand(1)
+	band, err := ds.RasterBand(1)
+	if err != nil {
+		t.Error(err)
+	}
 	data := make([]uint8, 100)
 	cs := 0
 	for i := uint8(0); i < 100; i++ {
@@ -96,6 +99,22 @@ func TestHistogram(t *testing.T) {
 		if hist[i] != 10 {
 			t.Errorf("failed to compute histogram. got: %+v, expected: 10\n", hist[i])
 		}
+	}
+}
+
+func TestInvalidBand(t *testing.T) {
+	drv, err := GetDriverByName("MEM")
+	if err != nil {
+		t.Error(err)
+	}
+	ds := drv.Create("/vsimem/tmp", 10, 10, 1, Byte, nil)
+	defer ds.Close()
+	band, err := ds.RasterBand(0)
+	if err == nil {
+		t.Error("failed to return error")
+	}
+	if band != nil && band.cval != nil {
+		t.Error("C null deref")
 	}
 }
 
@@ -139,7 +158,7 @@ func TestExecuteSQL(t *testing.T) {
 func TestConfigOption(t *testing.T) {
 	k, v := "GDAL_GO_TEST", "ON"
 	SetConfigOption(k, v)
-	if GetConfigOption(k, "") != v {
-		t.Errorf("Invalid value: %s\n", GetConfigOption(k, ""))
+	if ConfigOption(k, "") != v {
+		t.Errorf("Invalid value: %s\n", ConfigOption(k, ""))
 	}
 }

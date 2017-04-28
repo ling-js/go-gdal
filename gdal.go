@@ -20,10 +20,6 @@ func init() {
 	C.GDALAllRegister()
 }
 
-/* -------------------------------------------------------------------- */
-/*      Significant constants.                                          */
-/* -------------------------------------------------------------------- */
-
 const (
 	VERSION_MAJOR = int(C.GDAL_VERSION_MAJOR)
 	VERSION_MINOR = int(C.GDAL_VERSION_MINOR)
@@ -337,8 +333,6 @@ func DestroyScaledProgress(data unsafe.Pointer) {
 	C.GDALDestroyScaledProgress(data)
 }
 
-// -----------------------------------------------------------------------
-
 type goGDALProgressFuncProxyArgs struct {
 	progresssFunc ProgressFunc
 	data          interface{}
@@ -601,10 +595,21 @@ func (dataset Dataset) RasterCount() int {
 	return count
 }
 
-// Fetch a raster band object from a dataset
-func (dataset Dataset) RasterBand(band int) RasterBand {
-	rasterBand := RasterBand{C.GDALGetRasterBand(dataset.cval, C.int(band))}
-	return rasterBand
+// ErrInvalidBand represents an invalid band number when requested.  It is set
+// when the return from GDALGetRasterBand(n) is NULL.
+var ErrIllegalBand = errors.New("illegal band #")
+
+// RasterBand returns the RasterBand at index band, where:
+//
+// 0 > band >= Dataset.RasterCount()
+//
+// If the band is invalid, nil and ErrInvalidBand is returned
+func (dataset Dataset) RasterBand(band int) (*RasterBand, error) {
+	p := C.GDALGetRasterBand(dataset.cval, C.int(band))
+	if p == nil {
+		return nil, ErrInvalidBand
+	}
+	return &RasterBand{C.GDALGetRasterBand(dataset.cval, C.int(band))}, nil
 }
 
 // Add a band to a dataset
@@ -914,7 +919,7 @@ func (ds Dataset) LayerByName(name string) (Layer, error) {
 	return Layer{lyr}, nil
 }
 
-// Execute an SQL statement against the data store.
+// ExecuteSQL Executes an SQL statement against the data store.
 //
 // The result of an SQL query is either NULL for statements that are in error,
 // or that have no results set, or an OGRLayer pointer representing a results
@@ -924,9 +929,9 @@ func (ds Dataset) LayerByName(name string) (Layer, error) {
 //
 // This method is the same as the C++ method GDALDataset::ExecuteSQL()
 //
-//For more information on the SQL dialect supported internally by OGR review
-//the OGR SQL document. Some drivers (i.e. Oracle and PostGIS) pass the SQL
-//directly through to the underlying RDBMS.
+// For more information on the SQL dialect supported internally by OGR review
+// the OGR SQL document. Some drivers (i.e. Oracle and PostGIS) pass the SQL
+// directly through to the underlying RDBMS.
 func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (Layer, error) {
 	cSQL := C.CString(sql)
 	var cDialect *C.char
