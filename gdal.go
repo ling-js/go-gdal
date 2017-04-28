@@ -908,13 +908,13 @@ func (ds Dataset) LayerByIndex(layer int) (Layer, error) {
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayerByName()
-func (ds Dataset) LayerByName(name string) (Layer, error) {
+func (ds Dataset) LayerByName(name string) (*Layer, error) {
 	cName := C.CString(name)
 	lyr := C.GDALDatasetGetLayerByName(ds.cval, cName)
 	if lyr == nil {
-		return Layer{nil}, fmt.Errorf("failed to get layer")
+		return nil, fmt.Errorf("failed to get layer")
 	}
-	return Layer{lyr}, nil
+	return &Layer{lyr}, nil
 }
 
 // ExecuteSQL Executes an SQL statement against the data store.
