@@ -15,9 +15,7 @@ import (
 	"unsafe"
 )
 
-// GetConfigOption
-//
-// Get the value of a configuration option.
+// ConfigOption reads an internal configuration option.
 //
 // The value is the value of a (key, value) option set with
 // CPLSetConfigOption().  If the given option was no defined with
@@ -44,7 +42,7 @@ import (
 // see SetConfigOption()
 //
 // http://trac.osgeo.org/gdal/wiki/ConfigOptions
-func GetConfigOption(key, def string) string {
+func ConfigOption(key, def string) string {
 	k := C.CString(key)
 	d := C.CString(def)
 	defer C.free(unsafe.Pointer(k))
