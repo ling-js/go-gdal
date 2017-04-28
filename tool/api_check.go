@@ -90,6 +90,9 @@ func variants(f string) []string {
 		} else if i := strings.Index(s, "Url"); i >= 0 {
 			v = append(v, strings.Replace(s, "Url", "URL", -1))
 			v = append(v, strings.Replace(f, "Url", "WKT", -1))
+		} else if i := strings.Index(s, "Json"); i >= 0 {
+			v = append(v, strings.Replace(s, "Json", "JSON", -1))
+			v = append(v, strings.Replace(f, "Json", "JSON", -1))
 		}
 	}
 	return v
