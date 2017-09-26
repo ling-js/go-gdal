@@ -51,8 +51,7 @@ func (driver *Driver) Destroy() {
 
 // Registers a driver for use
 func (driver *Driver) Register() int {
-	index := C.GDALRegisterDriver(driver.cval)
-	return int(index)
+	return int(C.GDALRegisterDriver(driver.cval))
 }
 
 // Deregister the driver
@@ -101,8 +100,7 @@ func (driver *Driver) ShortName() string {
 
 // Get the long name associated with this driver
 func (driver *Driver) LongName() string {
-	cDriver := driver.cval
-	return C.GoString(C.GDALGetDriverLongName(cDriver))
+	return C.GoString(C.GDALGetDriverLongName(driver.cval))
 }
 
 // Create a new dataset with this driver.
@@ -111,7 +109,7 @@ func (driver *Driver) Create(
 	xSize, ySize, bands int,
 	dataType DataType,
 	options []string,
-) Dataset {
+) *Dataset {
 	name := C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
 
@@ -130,7 +128,10 @@ func (driver *Driver) Create(
 		C.GDALDataType(dataType),
 		(**C.char)(unsafe.Pointer(&opts[0])),
 	)
-	return Dataset{h}
+	if h == nil {
+		return nil
+	}
+	return &Dataset{h}
 }
 
 // Create a copy of a dataset
@@ -141,7 +142,7 @@ func (driver *Driver) CreateCopy(
 	options []string,
 	progress ProgressFunc,
 	data interface{},
-) Dataset {
+) *Dataset {
 	name := C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
 
@@ -176,8 +177,10 @@ func (driver *Driver) CreateCopy(
 			unsafe.Pointer(arg),
 		)
 	}
-
-	return Dataset{h}
+	if h == nil {
+		return nil
+	}
+	return &Dataset{h}
 }
 
 // Return the driver needed to access the provided dataset name.
@@ -194,5 +197,8 @@ func IdentifyDriver(filename string, filenameList []string) *Driver {
 	cFilenameList[length] = (*C.char)(unsafe.Pointer(nil))
 
 	driver := C.GDALIdentifyDriver(cFilename, (**C.char)(unsafe.Pointer(&cFilenameList[0])))
+	if driver == nil {
+		return nil
+	}
 	return &Driver{driver}
 }

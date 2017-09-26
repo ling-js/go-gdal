@@ -30,6 +30,29 @@ func TestInvalidDriver(t *testing.T) {
 	}
 }
 
+func TestInvalidCreate(t *testing.T) {
+	drv, err := GetDriverByName("AAIGrid")
+	if err != nil {
+		t.Error(err)
+	}
+	PushQuietHandler()
+	ds := drv.Create("/vsimem/foo.asc", 10, 10, 1, Float64, nil)
+	PopHandler()
+	if ds != nil {
+		t.Error("created valid dataset without Create() support")
+	}
+}
+
+func TestLongName(t *testing.T) {
+	drv, err := GetDriverByName("GTiff")
+	if err != nil {
+		t.Error(err)
+	}
+	if drv.LongName() != "GeoTIFF" {
+		t.Errorf("invalid long name: %s", drv.LongName())
+	}
+}
+
 func TestOpen(t *testing.T) {
 	ds, err := Open("test/small_world.tif", ReadOnly)
 	if err != nil {
