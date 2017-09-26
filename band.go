@@ -19,8 +19,7 @@ import (
 
 // Fetch the pixel data type for this band
 func (band *RasterBand) RasterDataType() DataType {
-	dataType := C.GDALGetRasterDataType(band.cval)
-	return DataType(dataType)
+	return DataType(C.GDALGetRasterDataType(band.cval))
 }
 
 // Fetch the "natural" block size of this band
@@ -86,7 +85,6 @@ func (band *RasterBand) IO(
 		dataPtr = unsafe.Pointer(&data[0])
 	case []float64:
 		dataType = Float64
-		dataPtr = unsafe.Pointer(&data[0])
 	default:
 		return fmt.Errorf("Error: buffer is not a valid data type (must be a valid numeric slice)")
 	}

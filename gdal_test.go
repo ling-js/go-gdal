@@ -43,6 +43,17 @@ func TestInvalidCreate(t *testing.T) {
 	}
 }
 
+func TestShortName(t *testing.T) {
+	format := "GTiff"
+	drv, err := GetDriverByName(format)
+	if err != nil {
+		t.Error(err)
+	}
+	if drv.ShortName() != format {
+		t.Errorf("invalid short name: %s", drv.ShortName())
+	}
+}
+
 func TestLongName(t *testing.T) {
 	drv, err := GetDriverByName("GTiff")
 	if err != nil {
@@ -101,6 +112,36 @@ func TestOpenExMismatchFlags(t *testing.T) {
 		if err == nil {
 			t.Errorf("driver flag test failed:%+v", test)
 		}
+	}
+}
+
+func TestRasterSize(t *testing.T) {
+	ds, err := Open("test/small_world.tif", ReadOnly)
+	if err != nil {
+		t.Fatal(err)
+	}
+	x := ds.RasterXSize()
+	y := ds.RasterYSize()
+	if x != 400 {
+		t.Errorf("invalid x size: %f", x)
+	}
+	if y != 200 {
+		t.Errorf("invalid y size: %f", y)
+	}
+}
+
+func TestDataType(t *testing.T) {
+	ds, err := Open("test/small_world.tif", ReadOnly)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := ds.RasterBand(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dt := b.RasterDataType()
+	if dt != Byte {
+		t.Errorf("invalid data type: %d", dt.Name())
 	}
 }
 
