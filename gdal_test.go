@@ -240,3 +240,22 @@ func TestConfigOption(t *testing.T) {
 		t.Errorf("Invalid value: %s\n", ConfigOption(k, ""))
 	}
 }
+
+func BenchmarkRasterIO(b *testing.B) {
+	ds, err := Open("test/small_world.tif", ReadOnly)
+	if err != nil {
+		b.Fatal(err)
+	}
+	nx := ds.RasterXSize()
+	ny := ds.RasterYSize()
+	buf := make([]byte, nx*ny)
+	band, err := ds.RasterBand(1)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		band.IO(Read, 0, 0, nx, ny, buf, nx, ny, 0, 0)
+	}
+	ds.Close()
+}
