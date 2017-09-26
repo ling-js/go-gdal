@@ -32,8 +32,7 @@ func GetDriverByName(driverName string) (*Driver, error) {
 
 // Fetch the number of registered drivers.
 func GetDriverCount() int {
-	nDrivers := C.GDALGetDriverCount()
-	return int(nDrivers)
+	return int(C.GDALGetDriverCount())
 }
 
 // Fetch driver by index
@@ -46,18 +45,18 @@ func GetDriver(index int) (*Driver, error) {
 }
 
 // Destroy a GDAL driver
-func (driver Driver) Destroy() {
+func (driver *Driver) Destroy() {
 	C.GDALDestroyDriver(driver.cval)
 }
 
 // Registers a driver for use
-func (driver Driver) Register() int {
+func (driver *Driver) Register() int {
 	index := C.GDALRegisterDriver(driver.cval)
 	return int(index)
 }
 
-// Reregister the driver
-func (driver Driver) Deregister() {
+// Deregister the driver
+func (driver *Driver) Deregister() {
 	C.GDALDeregisterDriver(driver.cval)
 }
 
@@ -67,7 +66,7 @@ func DestroyDriverManager() {
 }
 
 // Delete named dataset
-func (driver Driver) DeleteDataset(name string) error {
+func (driver *Driver) DeleteDataset(name string) error {
 	cDriver := driver.cval
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
@@ -75,7 +74,7 @@ func (driver Driver) DeleteDataset(name string) error {
 }
 
 // Rename named dataset
-func (driver Driver) RenameDataset(newName, oldName string) error {
+func (driver *Driver) RenameDataset(newName, oldName string) error {
 	cDriver := driver.cval
 	cNewName := C.CString(newName)
 	defer C.free(unsafe.Pointer(cNewName))
@@ -85,7 +84,7 @@ func (driver Driver) RenameDataset(newName, oldName string) error {
 }
 
 // Copy all files associated with the named dataset
-func (driver Driver) CopyDatasetFiles(newName, oldName string) error {
+func (driver *Driver) CopyDatasetFiles(newName, oldName string) error {
 	cDriver := driver.cval
 	cNewName := C.CString(newName)
 	defer C.free(unsafe.Pointer(cNewName))
@@ -95,19 +94,19 @@ func (driver Driver) CopyDatasetFiles(newName, oldName string) error {
 }
 
 // Get the short name associated with this driver
-func (driver Driver) ShortName() string {
+func (driver *Driver) ShortName() string {
 	cDriver := driver.cval
 	return C.GoString(C.GDALGetDriverShortName(cDriver))
 }
 
 // Get the long name associated with this driver
-func (driver Driver) LongName() string {
+func (driver *Driver) LongName() string {
 	cDriver := driver.cval
 	return C.GoString(C.GDALGetDriverLongName(cDriver))
 }
 
 // Create a new dataset with this driver.
-func (driver Driver) Create(
+func (driver *Driver) Create(
 	filename string,
 	xSize, ySize, bands int,
 	dataType DataType,
@@ -135,7 +134,7 @@ func (driver Driver) Create(
 }
 
 // Create a copy of a dataset
-func (driver Driver) CreateCopy(
+func (driver *Driver) CreateCopy(
 	filename string,
 	sourceDataset Dataset,
 	strict int,
@@ -182,7 +181,7 @@ func (driver Driver) CreateCopy(
 }
 
 // Return the driver needed to access the provided dataset name.
-func IdentifyDriver(filename string, filenameList []string) Driver {
+func IdentifyDriver(filename string, filenameList []string) *Driver {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
 
@@ -195,5 +194,5 @@ func IdentifyDriver(filename string, filenameList []string) Driver {
 	cFilenameList[length] = (*C.char)(unsafe.Pointer(nil))
 
 	driver := C.GDALIdentifyDriver(cFilename, (**C.char)(unsafe.Pointer(&cFilenameList[0])))
-	return Driver{driver}
+	return &Driver{driver}
 }

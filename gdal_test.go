@@ -71,6 +71,8 @@ func TestOpenExMismatchFlags(t *testing.T) {
 		},
 	}
 
+	PushQuietHandler()
+	defer PopHandler()
 	for _, test := range tests {
 		_, err := OpenEx(test.fname, test.flags, test.drivers, nil, nil)
 		if err == nil {
@@ -119,7 +121,9 @@ func TestInvalidBand(t *testing.T) {
 	}
 	ds := drv.Create("/vsimem/tmp", 10, 10, 1, Byte, nil)
 	defer ds.Close()
+	PushQuietHandler()
 	band, err := ds.RasterBand(0)
+	PopHandler()
 	if err == nil {
 		t.Error("failed to return error")
 	}
