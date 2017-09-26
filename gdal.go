@@ -492,6 +492,24 @@ func (object MajorObject) SetMetadataItem(name, value, domain string) {
 	return
 }
 
+func (dataset Dataset) Metadata(domain string) []string {
+	c_domain := C.CString(domain)
+	defer C.free(unsafe.Pointer(c_domain))
+
+	p := C.GDALGetMetadata(C.GDALMajorObjectH(dataset.cval), c_domain)
+	var strings []string
+	q := uintptr(unsafe.Pointer(p))
+	for {
+		p = (**C.char)(unsafe.Pointer(q))
+		if *p == nil {
+			break
+		}
+		strings = append(strings, C.GoString(*p))
+		q += unsafe.Sizeof(q)
+	}
+	return strings
+}
+
 // TODO: Make korrekt class hirerarchy via interfaces
 
 func (object *RasterBand) SetMetadataItem(name, value, domain string) error {
@@ -607,7 +625,7 @@ func (dataset Dataset) RasterBand(band int) (*RasterBand, error) {
 	if p == nil {
 		return nil, ErrIllegalBand
 	}
-	return &RasterBand{C.GDALGetRasterBand(dataset.cval, C.int(band))}, nil
+	return &RasterBand{p}, nil
 }
 
 // Add a band to a dataset

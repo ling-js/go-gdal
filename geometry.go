@@ -474,8 +474,6 @@ func (geom Geometry) PointCount() int {
 	return int(count)
 }
 
-// Unimplemented: Points
-
 // Fetch the X coordinate of a point in the geometry
 func (geom Geometry) X(index int) float64 {
 	x := C.OGR_G_GetX(geom.cval, C.int(index))

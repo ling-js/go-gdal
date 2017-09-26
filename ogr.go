@@ -87,7 +87,7 @@ func max(a, b C.double) C.double {
 }
 
 // Return the union of this envelope with another one
-func (env Envelope) Union(other Envelope) {
+func (env Envelope) Union(other Envelope) Envelope {
 	if env.IsInit() {
 		env.cval.MinX = min(env.cval.MinX, other.cval.MinX)
 		env.cval.MinY = min(env.cval.MinY, other.cval.MinY)
@@ -99,6 +99,7 @@ func (env Envelope) Union(other Envelope) {
 		env.cval.MaxX = other.cval.MaxX
 		env.cval.MaxY = other.cval.MaxY
 	}
+	return env
 }
 
 // Return the intersection of this envelope with another

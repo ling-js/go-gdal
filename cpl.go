@@ -94,3 +94,16 @@ func HTTPEnabled() bool {
 	}
 	return true
 }
+
+// PushQuietHandler installs the no-op error handling mechanism in GDAL.  No
+// output is printed out for warnings or errors.  Use PopHandler() to uninstall
+// the quiet handler.
+func PushQuietHandler() {
+	C.CPLPushErrorHandler(C.CPLErrorHandler(C.CPLQuietErrorHandler))
+}
+
+// PopHandler pops the current error handler off of the error handling function
+// stack.
+func PopHandler() {
+	C.CPLPopErrorHandler()
+}
