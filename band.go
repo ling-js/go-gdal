@@ -336,6 +336,12 @@ func (band *RasterBand) ComputeMinMax(approxOK int) (min, max float64) {
 	return minmax[0], minmax[1]
 }
 
+// Get Band Metadata
+func (band *RasterBand) Metadata() string {
+	cString := C.GDALGetMetadata(band.cval)
+	return C.GoString(cString)
+}
+
 // Flush raster data cache
 func (band *RasterBand) FlushCache() {
 	C.GDALFlushRasterCache(band.cval)
