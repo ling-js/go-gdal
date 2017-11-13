@@ -337,8 +337,9 @@ func (band *RasterBand) ComputeMinMax(approxOK int) (min, max float64) {
 }
 
 // Get Band Metadata
-func (band *RasterBand) Metadata() string {
-	cString := C.GDALGetMetadata(band.cval)
+func (band *RasterBand) Metadata(domain string) string {
+	cDomain := C.CString(domain)
+	cString := C.GDALGetMetadata(band.cval, cDomain)
 	return C.GoString(cString)
 }
 
