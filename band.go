@@ -337,10 +337,21 @@ func (band *RasterBand) ComputeMinMax(approxOK int) (min, max float64) {
 }
 
 // Get Band Metadata
-func (band *RasterBand) Metadata(domain string) string {
+func (band *RasterBand) Metadata(domain string) []string {
 	cDomain := C.CString(domain)
-	cString := C.GDALGetMetadata(band.cval, cDomain)
-	return C.GoString(cString)
+	cObject := C.GDALMajorObjectH(unsafe.Pointer(band.cval))
+	p := C.GDALGetMetadata(cObject, cDomain)
+	var strings []string
+	q := uintptr(unsafe.Pointer(p))
+	for {
+		p = (**C.char)(unsafe.Pointer(q))
+		if *p == nil {
+			break
+		}
+		strings = append(strings, C.GoString(*p))
+		q += unsafe.Sizeof(q)
+	}
+	return strings
 }
 
 // Flush raster data cache
